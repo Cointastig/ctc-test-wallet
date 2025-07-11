@@ -1,0 +1,2720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0A0A0A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>CTC Wallet - Secure Crypto Management</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQ1RDIFdhbGxldCIsInNob3J0X25hbWUiOiJDVEMiLCJkZXNjcmlwdGlvbiI6IlNlY3VyZSBDVEMtYmxvY2tjaGFpbiB3YWxsZXQiLCJzdGFydF91cmwiOiIvIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJ0aGVtZV9jb2xvciI6IiMwQTBBMEEiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzBBMEEwQSJ9">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        :root {
+            /* Dark Theme Colors */
+            --bg-primary: #0A0A0A;
+            --bg-secondary: #141414;
+            --bg-tertiary: #1A1A1A;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --bg-glass: rgba(255, 255, 255, 0.06);
+            --bg-glass-heavy: rgba(255, 255, 255, 0.08);
+            
+            /* Text Colors */
+            --text-primary: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-tertiary: rgba(255, 255, 255, 0.5);
+            
+            /* Accent Colors */
+            --accent-primary: #FFD700;
+            --accent-secondary: #FFA500;
+            --accent-gradient: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            
+            /* Status Colors */
+            --success: #00DC82;
+            --warning: #FF9500;
+            --error: #FF3B30;
+            --info: #007AFF;
+            
+            /* Glass Effects */
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --glass-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.4);
+            
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-2xl: 48px;
+            
+            /* Border Radius */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 9999px;
+            
+            /* Transitions */
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            touch-action: pan-y;
+        }
+
+        /* Background Effects */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at top right, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom left, rgba(255, 165, 0, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .bg-noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.03;
+            z-index: -1;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Screen Container */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(100%);
+            transition: all var(--transition-base);
+            background-color: var(--bg-primary);
+            z-index: 1;
+        }
+
+        .screen.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .screen.slide-out {
+            transform: translateX(-20%);
+        }
+
+        /* Safe Area */
+        .safe-area-top {
+            padding-top: env(safe-area-inset-top, 0);
+        }
+
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        /* Glass Card */
+        .glass-card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg);
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 50%, 
+                transparent 100%);
+        }
+
+        /* Typography */
+        .heading-1 {
+            font-size: 40px;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        .heading-2 {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.3;
+            letter-spacing: -0.01em;
+        }
+
+        .heading-3 {
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .heading-4 {
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .body-large {
+            font-size: 18px;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .body-base {
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .body-small {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .caption {
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.4;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            min-height: 56px;
+            width: 100%;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: var(--bg-primary);
+            box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 24px rgba(255, 215, 0, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-glass-heavy);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            padding: var(--spacing-sm) var(--spacing-md);
+            min-height: 44px;
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-glass);
+        }
+
+        .btn-icon {
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            border-radius: var(--radius-full);
+            min-height: 48px;
+            min-width: 48px;
+            flex-shrink: 0;
+        }
+
+        .btn-small {
+            padding: var(--spacing-sm) var(--spacing-md);
+            min-height: 40px;
+            font-size: 14px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-md);
+            padding-top: calc(env(safe-area-inset-top, 0) + var(--spacing-md));
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .header-action {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-full);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .header-action:hover {
+            background: var(--bg-glass);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-around;
+            padding: var(--spacing-sm) 0;
+            padding-bottom: calc(env(safe-area-inset-bottom, 0) + var(--spacing-sm));
+            z-index: 100;
+            transform: translateY(100%);
+            transition: transform var(--transition-base);
+        }
+
+        .bottom-nav.visible {
+            transform: translateY(0);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: var(--spacing-sm);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            color: var(--text-tertiary);
+            text-decoration: none;
+            position: relative;
+        }
+
+        .nav-item.active {
+            color: var(--accent-primary);
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 3px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-full);
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            transition: transform var(--transition-fast);
+        }
+
+        .nav-item:active .nav-icon {
+            transform: scale(0.9);
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Content Container */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0 var(--spacing-md) var(--spacing-xl);
+            padding-bottom: 100px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .content::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
+        }
+
+        /* Splash Screen */
+        .splash-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: var(--spacing-xl);
+        }
+
+        .logo-animated {
+            width: 120px;
+            height: 120px;
+            background: var(--accent-gradient);
+            border-radius: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--bg-primary);
+            margin-bottom: var(--spacing-xl);
+            animation: logoFloat 3s ease-in-out infinite;
+            box-shadow: 0 20px 40px rgba(255, 215, 0, 0.3);
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.02); }
+        }
+
+        .splash-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: var(--spacing-sm);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .splash-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-primary);
+            border-radius: var(--radius-full);
+            animation: loadingPulse 1.4s ease-in-out infinite;
+        }
+
+        .loading-dot:nth-child(2) { animation-delay: 0.16s; }
+        .loading-dot:nth-child(3) { animation-delay: 0.32s; }
+
+        @keyframes loadingPulse {
+            0%, 80%, 100% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Portfolio Card */
+        .portfolio-card {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 165, 0, 0.05) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .portfolio-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+            animation: portfolioShimmer 10s ease-in-out infinite;
+        }
+
+        @keyframes portfolioShimmer {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+        }
+
+        .portfolio-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .portfolio-balance {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: var(--spacing-sm);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .portfolio-change {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .change-positive {
+            color: var(--success);
+        }
+
+        .change-negative {
+            color: var(--error);
+        }
+
+        /* Action Grid */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .action-button {
+            background: var(--bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-sm);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .action-button:hover {
+            background: var(--bg-glass-heavy);
+            transform: translateY(-2px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .action-button:active {
+            transform: scale(0.98);
+        }
+
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--bg-primary);
+        }
+
+        .action-label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Asset List */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .asset-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md) 0;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+        }
+
+        .asset-item::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 60px;
+            right: 0;
+            height: 1px;
+            background: var(--glass-border);
+        }
+
+        .asset-item:last-child::after {
+            display: none;
+        }
+
+        .asset-item:hover {
+            opacity: 0.8;
+        }
+
+        .asset-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--bg-primary);
+            position: relative;
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+        }
+
+        .asset-icon.token {
+            background: var(--bg-glass-heavy);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            box-shadow: none;
+        }
+
+        .asset-details {
+            flex: 1;
+        }
+
+        .asset-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .asset-symbol {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .asset-values {
+            text-align: right;
+        }
+
+        .asset-balance {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .asset-value {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Transaction Screen */
+        .transaction-header {
+            text-align: center;
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .transaction-type {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .amount-input-container {
+            position: relative;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .amount-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            font-size: 48px;
+            font-weight: 800;
+            text-align: center;
+            color: var(--accent-primary);
+            outline: none;
+            padding: 0;
+            height: 60px;
+        }
+
+        .amount-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .amount-converted {
+            text-align: center;
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .max-button {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--bg-glass);
+            border: 1px solid var(--accent-primary);
+            border-radius: var(--radius-sm);
+            color: var(--accent-primary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .max-button:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        /* Input Field */
+        .input-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .input-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+            display: block;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: var(--bg-glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            color: var(--text-primary);
+            font-size: 16px;
+            outline: none;
+            transition: all var(--transition-fast);
+        }
+
+        .input-field:focus {
+            border-color: var(--accent-primary);
+            background: var(--bg-glass-heavy);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .input-addon {
+            position: absolute;
+            right: var(--spacing-md);
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* QR Scanner Button */
+        .qr-button {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .qr-button:hover {
+            background: var(--bg-glass-heavy);
+            border-color: var(--accent-primary);
+        }
+
+        /* Fee Selector */
+        .fee-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .fee-option {
+            padding: var(--spacing-md);
+            background: var(--bg-glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-align: center;
+        }
+
+        .fee-option:hover {
+            background: var(--bg-glass-heavy);
+        }
+
+        .fee-option.selected {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: var(--accent-primary);
+        }
+
+        .fee-speed {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .fee-amount {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .fee-time {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+        /* PIN Pad */
+        .pin-container {
+            max-width: 360px;
+            margin: 0 auto;
+            padding: var(--spacing-xl) 0;
+        }
+
+        .pin-dots {
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .pin-dot {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--glass-border);
+            border-radius: var(--radius-full);
+            transition: all var(--transition-fast);
+        }
+
+        .pin-dot.filled {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+        }
+
+        .pin-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-md);
+        }
+
+        .pin-key {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            font-size: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            user-select: none;
+        }
+
+        .pin-key:hover {
+            background: var(--bg-glass-heavy);
+            transform: scale(1.05);
+        }
+
+        .pin-key:active {
+            transform: scale(0.95);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .pin-key.action {
+            font-size: 18px;
+            color: var(--accent-primary);
+        }
+
+        /* Biometric Button */
+        .biometric-button {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-glass);
+            border: 2px solid var(--accent-primary);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: var(--spacing-2xl) auto;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            box-shadow: 0 8px 24px rgba(255, 215, 0, 0.2);
+        }
+
+        .biometric-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 32px rgba(255, 215, 0, 0.3);
+        }
+
+        .biometric-button svg {
+            width: 40px;
+            height: 40px;
+            color: var(--accent-primary);
+        }
+
+        /* Transaction List */
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md) 0;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .transaction-item:hover {
+            opacity: 0.8;
+        }
+
+        .transaction-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .transaction-icon.send {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--error);
+            transform: rotate(-45deg);
+        }
+
+        .transaction-icon.receive {
+            background: rgba(0, 220, 130, 0.1);
+            color: var(--success);
+            transform: rotate(45deg);
+        }
+
+        .transaction-details {
+            flex: 1;
+        }
+
+        .transaction-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .transaction-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .transaction-amount {
+            text-align: right;
+        }
+
+        .transaction-value {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .transaction-value.positive {
+            color: var(--success);
+        }
+
+        .transaction-value.negative {
+            color: var(--text-primary);
+        }
+
+        .transaction-time {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Settings */
+        .settings-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .settings-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-md) 0;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .settings-item:hover {
+            opacity: 0.8;
+        }
+
+        .settings-info {
+            flex: 1;
+        }
+
+        .settings-label {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .settings-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .settings-value {
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            width: 48px;
+            height: 28px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-full);
+            position: relative;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .toggle-switch.active {
+            background: var(--accent-primary);
+        }
+
+        .toggle-knob {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: var(--radius-full);
+            transition: all var(--transition-fast);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active .toggle-knob {
+            left: 23px;
+        }
+
+        /* QR Code */
+        .qr-container {
+            background: white;
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-xl);
+            margin: var(--spacing-xl) auto;
+            width: fit-content;
+            box-shadow: var(--glass-shadow-lg);
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            background: 
+                conic-gradient(from 90deg at 1px 1px, #000 90deg, #fff 0) 
+                0 0/20px 20px;
+        }
+
+        /* Address Display */
+        .address-display {
+            background: var(--bg-glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md);
+            margin: var(--spacing-lg) 0;
+            word-break: break-all;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+            font-size: 14px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        /* Success Screen */
+        .success-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-2xl);
+            text-align: center;
+            min-height: 60vh;
+        }
+
+        .success-icon {
+            width: 120px;
+            height: 120px;
+            background: rgba(0, 220, 130, 0.1);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--spacing-xl);
+            position: relative;
+        }
+
+        .success-icon::before {
+            content: '✓';
+            font-size: 60px;
+            color: var(--success);
+            font-weight: 800;
+        }
+
+        .success-icon::after {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            border: 2px solid var(--success);
+            border-radius: var(--radius-full);
+            opacity: 0;
+            animation: successRipple 1s ease-out;
+        }
+
+        @keyframes successRipple {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-2xl) 0;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-glass);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-lg);
+            font-size: 32px;
+            color: var(--text-tertiary);
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .empty-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Charts */
+        .chart-container {
+            height: 200px;
+            margin: var(--spacing-lg) 0;
+            position: relative;
+            background: var(--bg-glass);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md);
+        }
+
+        /* Staking Card */
+        .staking-card {
+            background: linear-gradient(135deg, rgba(0, 220, 130, 0.1) 0%, rgba(0, 220, 130, 0.05) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 220, 130, 0.2);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .staking-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .staking-apy {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .staking-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 375px) {
+            .heading-1 { font-size: 32px; }
+            .heading-2 { font-size: 28px; }
+            .portfolio-balance { font-size: 40px; }
+            .amount-input { font-size: 40px; }
+        }
+
+        @media (min-width: 768px) {
+            .screen {
+                max-width: 428px;
+                margin: 0 auto;
+                box-shadow: var(--glass-shadow-lg);
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn var(--transition-base) ease-out;
+        }
+
+        .slide-up {
+            animation: slideUp var(--transition-base) ease-out;
+        }
+
+        .scale-in {
+            animation: scaleIn var(--transition-base) ease-out;
+        }
+
+        /* Seed Phrase */
+        .seed-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .seed-word {
+            background: var(--bg-glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            text-align: center;
+            position: relative;
+        }
+
+        .seed-number {
+            position: absolute;
+            top: 4px;
+            left: 8px;
+            font-size: 10px;
+            color: var(--text-tertiary);
+            font-weight: 600;
+        }
+
+        .seed-text {
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+        }
+
+        /* Ripple Effect */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: var(--radius-full);
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .ripple:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, 
+                var(--bg-glass) 25%, 
+                var(--bg-glass-heavy) 50%, 
+                var(--bg-glass) 75%);
+            background-size: 200% 100%;
+            animation: skeletonLoading 1.5s infinite;
+            border-radius: var(--radius-md);
+        }
+
+        @keyframes skeletonLoading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md) var(--spacing-lg);
+            box-shadow: var(--glass-shadow-lg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 1000;
+            opacity: 0;
+            transition: all var(--transition-base);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .toast-message {
+            font-size: 14px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-gradient"></div>
+    <div class="bg-noise"></div>
+
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="screen active">
+        <div class="splash-content">
+            <div class="logo-animated">CTC</div>
+            <h1 class="splash-title">CTC Wallet</h1>
+            <p class="splash-subtitle">The future of DeFi in your pocket</p>
+            <div class="loading-dots">
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Screen -->
+    <div id="onboarding-screen" class="screen">
+        <div class="content" style="display: flex; flex-direction: column; justify-content: center; min-height: 100vh;">
+            <div style="text-align: center; padding: var(--spacing-xl);">
+                <div class="logo-animated" style="margin: 0 auto var(--spacing-xl);">CTC</div>
+                <h1 class="heading-1" style="margin-bottom: var(--spacing-md);">Welcome to the Future of Finance</h1>
+                <p class="body-large" style="color: var(--text-secondary); margin-bottom: var(--spacing-2xl);">
+                    Your gateway to the CTC blockchain ecosystem
+                </p>
+            </div>
+            
+            <div style="padding: 0 var(--spacing-xl);">
+                <div class="glass-card slide-up" style="animation-delay: 0.1s;">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                        <div style="font-size: 32px;">🔐</div>
+                        <div>
+                            <h3 class="heading-4" style="margin-bottom: 4px;">Bank-Grade Security</h3>
+                            <p class="body-small" style="color: var(--text-secondary); margin: 0;">
+                                Multi-layer encryption & biometric protection
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card slide-up" style="animation-delay: 0.2s; margin-top: var(--spacing-md);">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                        <div style="font-size: 32px;">⚡</div>
+                        <div>
+                            <h3 class="heading-4" style="margin-bottom: 4px;">Lightning Fast</h3>
+                            <p class="body-small" style="color: var(--text-secondary); margin: 0;">
+                                1-3 second confirmations with DPoS
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-card slide-up" style="animation-delay: 0.3s; margin-top: var(--spacing-md);">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                        <div style="font-size: 32px;">💰</div>
+                        <div>
+                            <h3 class="heading-4" style="margin-bottom: 4px;">Earn Rewards</h3>
+                            <p class="body-small" style="color: var(--text-secondary); margin: 0;">
+                                Up to 12.5% APY with staking
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="padding: var(--spacing-xl); margin-top: auto;">
+                <button class="btn btn-primary scale-in" style="animation-delay: 0.4s;" onclick="showScreen('create-wallet-screen')">
+                    Create New Wallet
+                </button>
+                <button class="btn btn-ghost scale-in" style="animation-delay: 0.5s; margin-top: var(--spacing-md);" onclick="showScreen('import-wallet-screen')">
+                    I already have a wallet
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Wallet Screen -->
+    <div id="create-wallet-screen" class="screen">
+        <div class="header">
+            <div class="header-action" onclick="showScreen('onboarding-screen')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </div>
+            <div class="header-title">Create Wallet</div>
+            <div style="width: 40px;"></div>
+        </div>
+        
+        <div class="content">
+            <div style="text-align: center; margin-bottom: var(--spacing-2xl);">
+                <h2 class="heading-2">Secure Your Wallet</h2>
+                <p class="body-base" style="color: var(--text-secondary); margin-top: var(--spacing-sm);">
+                    Create a 6-digit PIN to protect your funds
+                </p>
+            </div>
+            
+            <div class="pin-container">
+                <div class="pin-dots">
+                    <div class="pin-dot" id="pin-1"></div>
+                    <div class="pin-dot" id="pin-2"></div>
+                    <div class="pin-dot" id="pin-3"></div>
+                    <div class="pin-dot" id="pin-4"></div>
+                    <div class="pin-dot" id="pin-5"></div>
+                    <div class="pin-dot" id="pin-6"></div>
+                </div>
+                
+                <div class="pin-pad">
+                    <button class="pin-key ripple" onclick="addPin('1')">1</button>
+                    <button class="pin-key ripple" onclick="addPin('2')">2</button>
+                    <button class="pin-key ripple" onclick="addPin('3')">3</button>
+                    <button class="pin-key ripple" onclick="addPin('4')">4</button>
+                    <button class="pin-key ripple" onclick="addPin('5')">5</button>
+                    <button class="pin-key ripple" onclick="addPin('6')">6</button>
+                    <button class="pin-key ripple" onclick="addPin('7')">7</button>
+                    <button class="pin-key ripple" onclick="addPin('8')">8</button>
+                    <button class="pin-key ripple" onclick="addPin('9')">9</button>
+                    <button class="pin-key action" onclick="clearPin()">Clear</button>
+                    <button class="pin-key ripple" onclick="addPin('0')">0</button>
+                    <button class="pin-key action" onclick="deletePin()">←</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seed Phrase Screen -->
+    <div id="seed-phrase-screen" class="screen">
+        <div class="header">
+            <div class="header-action" onclick="showScreen('create-wallet-screen')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </div>
+            <div class="header-title">Recovery Phrase</div>
+            <div style="width: 40px;"></div>
+        </div>
+        
+        <div class="content">
+            <div class="glass-card" style="background: rgba(255, 59, 48, 0.1); border-color: rgba(255, 59, 48, 0.3); margin-bottom: var(--spacing-xl);">
+                <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                    <div style="font-size: 24px;">⚠️</div>
+                    <div>
+                        <h4 class="heading-4" style="margin-bottom: 4px;">Critical Security Warning</h4>
+                        <p class="body-small" style="margin: 0;">
+                            Write down these words in order. This is the ONLY way to recover your wallet.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="seed-grid" id="seed-grid">
+                <!-- Seeds will be generated here -->
+            </div>
+            
+            <button class="btn btn-primary" onclick="showScreen('verify-seed-screen')">
+                I've Written It Down Securely
+            </button>
+            
+            <p class="body-small" style="text-align: center; color: var(--text-secondary); margin-top: var(--spacing-lg);">
+                Never share your recovery phrase with anyone
+            </p>
+        </div>
+    </div>
+
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="screen">
+        <div class="content" style="display: flex; flex-direction: column; justify-content: center; min-height: 100vh;">
+            <div style="text-align: center; margin-bottom: var(--spacing-2xl);">
+                <div class="logo-animated" style="width: 80px; height: 80px; font-size: 32px; margin: 0 auto var(--spacing-lg);">CTC</div>
+                <h2 class="heading-2">Welcome Back</h2>
+                <p class="body-base" style="color: var(--text-secondary); margin-top: var(--spacing-sm);">
+                    Enter your PIN to continue
+                </p>
+            </div>
+            
+            <div class="pin-container">
+                <div class="pin-dots">
+                    <div class="pin-dot" id="auth-pin-1"></div>
+                    <div class="pin-dot" id="auth-pin-2"></div>
+                    <div class="pin-dot" id="auth-pin-3"></div>
+                    <div class="pin-dot" id="auth-pin-4"></div>
+                    <div class="pin-dot" id="auth-pin-5"></div>
+                    <div class="pin-dot" id="auth-pin-6"></div>
+                </div>
+                
+                <div class="biometric-button" onclick="authenticateBiometric()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 11V15M9.5 15.5L12 18L14.5 15.5M9.5 11.5L12 9L14.5 11.5M3 7C3 7 6 2 12 2S21 7 21 7M3 17C3 17 6 22 12 22S21 17 21 17"/>
+                    </svg>
+                </div>
+                
+                <div class="pin-pad">
+                    <button class="pin-key ripple" onclick="addAuthPin('1')">1</button>
+                    <button class="pin-key ripple" onclick="addAuthPin('2')">2</button>
+                    <button class="pin-key ripple" onclick="addAuthPin('3')">3</button>
+                    <button class="pin-key ripple" onclick="addAuthPin('4')">4</button>
+                    <button class="pin-key ripple" onclick="addAuthPin('5')">5</button>
+                    <button class="pin-key ripple" onclick="addAuthPin('6')">6</button>
+                    <button class="pin-key ripple" onclick="addAuthPin('7')">7</button>
+                    <button class="pin-key ripple" onclick="addAuthPin('8')">8</button>
+                    <button class="pin-key ripple" onclick="addAuthPin('9')">9</button>
+                    <button class="pin-key action" onclick="forgotPin()">Forgot?</button>
+                    <button class="pin-key ripple" onclick="addAuthPin('0')">0</button>
+                    <button class="pin-key action" onclick="deleteAuthPin()">←</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboard-screen" class="screen">
+        <div class="header">
+            <div class="header-action">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="15" stroke="currentColor" stroke-width="2" opacity="0.3"/>
+                    <path d="M16 8C11.6 8 8 11.6 8 16C8 20.4 11.6 24 16 24" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="header-title">CTC Wallet</div>
+            <div class="header-action" onclick="showScreen('notifications-screen')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    <circle cx="17" cy="7" r="3" fill="var(--accent-primary)" stroke="none"/>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Portfolio Card -->
+            <div class="portfolio-card">
+                <div class="portfolio-label">Total Balance</div>
+                <div class="portfolio-balance">10,000.00 CTC</div>
+                <div class="portfolio-change change-positive">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 5v10m-5-5l5-5 5 5"/>
+                    </svg>
+                    <span>+12.5%</span>
+                    <span style="color: var(--text-secondary);">$24,500.00</span>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="action-grid">
+                <div class="action-button" onclick="showScreen('send-screen')">
+                    <div class="action-icon">↑</div>
+                    <div class="action-label">Send</div>
+                </div>
+                <div class="action-button" onclick="showScreen('receive-screen')">
+                    <div class="action-icon">↓</div>
+                    <div class="action-label">Receive</div>
+                </div>
+                <div class="action-button" onclick="showScreen('swap-screen')">
+                    <div class="action-icon">⇄</div>
+                    <div class="action-label">Swap</div>
+                </div>
+                <div class="action-button" onclick="showScreen('stake-screen')">
+                    <div class="action-icon">%</div>
+                    <div class="action-label">Stake</div>
+                </div>
+            </div>
+            
+            <!-- Assets -->
+            <div class="section-header">
+                <h3 class="section-title">Assets</h3>
+                <a href="#" class="body-small" style="color: var(--accent-primary); text-decoration: none;">View All</a>
+            </div>
+            
+            <div class="asset-list">
+                <div class="asset-item" onclick="showScreen('asset-detail-screen')">
+                    <div class="asset-icon">CTC</div>
+                    <div class="asset-details">
+                        <div class="asset-name">CTC</div>
+                        <div class="asset-symbol">Community Trust Coin</div>
+                    </div>
+                    <div class="asset-values">
+                        <div class="asset-balance">10,000.00</div>
+                        <div class="asset-value">$24,500.00</div>
+                    </div>
+                </div>
+                
+                <div class="asset-item">
+                    <div class="asset-icon token">BTC</div>
+                    <div class="asset-details">
+                        <div class="asset-name">Bitcoin</div>
+                        <div class="asset-symbol">BTC</div>
+                    </div>
+                    <div class="asset-values">
+                        <div class="asset-balance">0.00</div>
+                        <div class="asset-value">$0.00</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Transactions -->
+            <div class="section-header">
+                <h3 class="section-title">Recent Activity</h3>
+                <a href="#" class="body-small" style="color: var(--accent-primary); text-decoration: none;">View All</a>
+            </div>
+            
+            <div class="transaction-list">
+                <div class="transaction-item">
+                    <div class="transaction-icon receive">↓</div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">Received</div>
+                        <div class="transaction-subtitle">From ctc1qxy2...</div>
+                    </div>
+                    <div class="transaction-amount">
+                        <div class="transaction-value positive">+500.00 CTC</div>
+                        <div class="transaction-time">2 hours ago</div>
+                    </div>
+                </div>
+                
+                <div class="transaction-item">
+                    <div class="transaction-icon send">↑</div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">Sent</div>
+                        <div class="transaction-subtitle">To ctc1abc3...</div>
+                    </div>
+                    <div class="transaction-amount">
+                        <div class="transaction-value negative">-125.50 CTC</div>
+                        <div class="transaction-time">Yesterday</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Screen -->
+    <div id="send-screen" class="screen">
+        <div class="header">
+            <div class="header-action" onclick="showScreen('dashboard-screen')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </div>
+            <div class="header-title">Send CTC</div>
+            <div style="width: 40px;"></div>
+        </div>
+        
+        <div class="content">
+            <div class="transaction-header">
+                <div class="asset-icon" style="margin: 0 auto var(--spacing-md);">CTC</div>
+                <div class="transaction-type">Available Balance</div>
+                <h2 class="heading-2">10,000.00 CTC</h2>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Recipient Address</label>
+                <div class="input-container">
+                    <input type="text" class="input-field" placeholder="Enter CTC address" id="recipient">
+                    <div class="input-addon">
+                        <button class="qr-button" onclick="scanQR()">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="4" height="4"/>
+                                <rect x="13" y="3" width="4" height="4"/>
+                                <rect x="3" y="13" width="4" height="4"/>
+                                <rect x="13" y="13" width="4" height="4"/>
+                                <rect x="8" y="8" width="4" height="4"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Amount</label>
+                <div class="amount-input-container">
+                    <input type="number" class="amount-input" placeholder="0.00" id="amount">
+                    <button class="max-button" onclick="setMaxAmount()">MAX</button>
+                </div>
+                <div class="amount-converted">≈ $0.00 USD</div>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Network Fee</label>
+                <div class="fee-selector">
+                    <div class="fee-option" onclick="selectFee(this, 'slow')">
+                        <div class="fee-speed">Slow</div>
+                        <div class="fee-amount">0.001 CTC</div>
+                        <div class="fee-time">~10 min</div>
+                    </div>
+                    <div class="fee-option selected" onclick="selectFee(this, 'normal')">
+                        <div class="fee-speed">Normal</div>
+                        <div class="fee-amount">0.01 CTC</div>
+                        <div class="fee-time">~3 min</div>
+                    </div>
+                    <div class="fee-option" onclick="selectFee(this, 'fast')">
+                        <div class="fee-speed">Fast</div>
+                        <div class="fee-amount">0.1 CTC</div>
+                        <div class="fee-time">~30 sec</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" onclick="reviewTransaction()">
+                Review Transaction
+            </button>
+        </div>
+    </div>
+
+    <!-- Transaction Confirm Screen -->
+    <div id="confirm-screen" class="screen">
+        <div class="header">
+            <div class="header-action" onclick="showScreen('send-screen')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </div>
+            <div class="header-title">Confirm Transaction</div>
+            <div style="width: 40px;"></div>
+        </div>
+        
+        <div class="content">
+            <div class="transaction-header">
+                <div class="transaction-type">You're sending</div>
+                <h1 class="heading-1" style="color: var(--accent-primary);">100.00 CTC</h1>
+                <div class="amount-converted">≈ $245.00 USD</div>
+            </div>
+            
+            <div class="glass-card" style="margin: var(--spacing-xl) 0;">
+                <div style="margin-bottom: var(--spacing-md);">
+                    <div class="caption">FROM</div>
+                    <div class="body-base" style="margin-top: var(--spacing-xs);">My Wallet</div>
+                    <div class="body-small" style="color: var(--text-secondary); font-family: monospace;">ctc1qmy2...</div>
+                </div>
+                
+                <div style="text-align: center; margin: var(--spacing-lg) 0;">
+                    <div style="width: 40px; height: 40px; margin: 0 auto; background: var(--accent-gradient); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; transform: rotate(90deg);">
+                        →
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="caption">TO</div>
+                    <div class="body-base" style="margin-top: var(--spacing-xs);">External Wallet</div>
+                    <div class="body-small" style="color: var(--text-secondary); font-family: monospace;">ctc1qxy2...</div>
+                </div>
+            </div>
+            
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-sm);">
+                    <span class="body-small" style="color: var(--text-secondary);">Amount</span>
+                    <span class="body-small">100.00 CTC</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-sm);">
+                    <span class="body-small" style="color: var(--text-secondary);">Network Fee</span>
+                    <span class="body-small">0.01 CTC</span>
+                </div>
+                <div style="height: 1px; background: var(--glass-border); margin: var(--spacing-md) 0;"></div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="body-base" style="font-weight: 600;">Total</span>
+                    <span class="body-base" style="font-weight: 600; color: var(--accent-primary);">100.01 CTC</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-xl);">
+                <button class="btn btn-secondary" style="width: 40%;" onclick="showScreen('send-screen')">
+                    Cancel
+                </button>
+                <button class="btn btn-primary" style="width: 60%;" onclick="sendTransaction()">
+                    Confirm & Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Screen -->
+    <div id="success-screen" class="screen">
+        <div class="content">
+            <div class="success-container">
+                <div class="success-icon"></div>
+                <h2 class="heading-2">Transaction Sent!</h2>
+                <p class="body-base" style="color: var(--text-secondary); margin-top: var(--spacing-sm);">
+                    Your transaction has been submitted to the network
+                </p>
+                
+                <div class="glass-card" style="margin: var(--spacing-xl) 0; text-align: left;">
+                    <div class="caption">TRANSACTION ID</div>
+                    <div class="body-small" style="font-family: monospace; margin-top: var(--spacing-sm); word-break: break-all;">
+                        a8f3b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="showScreen('dashboard-screen')">
+                    Back to Dashboard
+                </button>
+                <button class="btn btn-ghost" style="margin-top: var(--spacing-md);" onclick="viewTransaction()">
+                    View Transaction
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receive Screen -->
+    <div id="receive-screen" class="screen">
+        <div class="header">
+            <div class="header-action" onclick="showScreen('dashboard-screen')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </div>
+            <div class="header-title">Receive CTC</div>
+            <div class="header-action" onclick="shareAddress()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
+                    <circle cx="5" cy="19" r="3"/>
+                    <circle cx="5" cy="5" r="3"/>
+                    <circle cx="19" cy="12" r="3"/>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="content" style="text-align: center;">
+            <h2 class="heading-3" style="margin-bottom: var(--spacing-lg);">Scan to receive CTC</h2>
+            
+            <div class="qr-container">
+                <div class="qr-code"></div>
+            </div>
+            
+            <div class="address-display">
+                ctc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhxwmxuh
+            </div>
+            
+            <div style="display: flex; gap: var(--spacing-md);">
+                <button class="btn btn-secondary" onclick="copyAddress()">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="5" y="5" width="10" height="10" rx="2"/>
+                        <path d="M9 5V3a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2h-2"/>
+                    </svg>
+                    Copy Address
+                </button>
+                <button class="btn btn-ghost btn-small" onclick="setAmount()">
+                    Set Amount
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settings-screen" class="screen">
+        <div class="header">
+            <div style="width: 40px;"></div>
+            <div class="header-title">Settings</div>
+            <div style="width: 40px;"></div>
+        </div>
+        
+        <div class="content">
+            <!-- Profile Section -->
+            <div class="glass-card" style="text-align: center; margin-bottom: var(--spacing-xl);">
+                <div style="width: 80px; height: 80px; background: var(--accent-gradient); border-radius: var(--radius-full); margin: 0 auto var(--spacing-md); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: var(--bg-primary);">
+                    W1
+                </div>
+                <h3 class="heading-4">Wallet 1</h3>
+                <p class="body-small" style="color: var(--text-secondary); margin-top: var(--spacing-xs); font-family: monospace;">
+                    ctc1qxy2...mxuh
+                </p>
+            </div>
+            
+            <!-- Security Settings -->
+            <div class="settings-section">
+                <div class="settings-title">Security</div>
+                
+                <div class="settings-item" onclick="toggleBiometric()">
+                    <div class="settings-info">
+                        <div class="settings-label">Biometric Authentication</div>
+                        <div class="settings-description">Use Face ID to unlock</div>
+                    </div>
+                    <div class="toggle-switch active" id="biometric-toggle">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                
+                <div class="settings-item" onclick="showScreen('change-pin-screen')">
+                    <div class="settings-info">
+                        <div class="settings-label">Change PIN</div>
+                    </div>
+                    <div class="settings-value">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 10h10m-5-5l5 5-5 5"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="settings-item" onclick="showSeedPhrase()">
+                    <div class="settings-info">
+                        <div class="settings-label">Recovery Phrase</div>
+                        <div class="settings-description">View your backup phrase</div>
+                    </div>
+                    <div class="settings-value">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 10h10m-5-5l5 5-5 5"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preferences -->
+            <div class="settings-section">
+                <div class="settings-title">Preferences</div>
+                
+                <div class="settings-item">
+                    <div class="settings-info">
+                        <div class="settings-label">Currency</div>
+                        <div class="settings-description">Display prices in</div>
+                    </div>
+                    <div class="settings-value">
+                        USD
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 10h10m-5-5l5 5-5 5"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="settings-item">
+                    <div class="settings-info">
+                        <div class="settings-label">Language</div>
+                    </div>
+                    <div class="settings-value">
+                        English
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 10h10m-5-5l5 5-5 5"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- About -->
+            <div class="settings-section">
+                <div class="settings-title">About</div>
+                
+                <div class="settings-item">
+                    <div class="settings-info">
+                        <div class="settings-label">Version</div>
+                    </div>
+                    <div class="settings-value">1.0.0</div>
+                </div>
+                
+                <div class="settings-item">
+                    <div class="settings-info">
+                        <div class="settings-label">Terms of Service</div>
+                    </div>
+                    <div class="settings-value">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 10h10m-5-5l5 5-5 5"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-ghost" style="color: var(--error); margin-top: var(--spacing-xl);" onclick="logout()">
+                Sign Out
+            </button>
+        </div>
+    </div>
+
+    <!-- DeFi Screen -->
+    <div id="defi-screen" class="screen">
+        <div class="header">
+            <div style="width: 40px;"></div>
+            <div class="header-title">DeFi</div>
+            <div style="width: 40px;"></div>
+        </div>
+        
+        <div class="content">
+            <!-- Staking Overview -->
+            <div class="staking-card">
+                <div class="staking-info">
+                    <div>
+                        <div class="staking-label">Current APY</div>
+                        <div class="staking-apy">12.5%</div>
+                    </div>
+                    <button class="btn btn-primary btn-small" style="width: auto;" onclick="showScreen('stake-screen')">
+                        Stake Now
+                    </button>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: var(--spacing-md);">
+                    <div>
+                        <div class="body-small" style="color: var(--text-secondary);">Your Stake</div>
+                        <div class="body-large" style="font-weight: 600;">5,000 CTC</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="body-small" style="color: var(--text-secondary);">Rewards Earned</div>
+                        <div class="body-large" style="font-weight: 600; color: var(--success);">+125.50 CTC</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Validator Voting -->
+            <div class="glass-card">
+                <h3 class="heading-4" style="margin-bottom: var(--spacing-sm);">Validator Voting</h3>
+                <p class="body-small" style="color: var(--text-secondary); margin-bottom: var(--spacing-md);">
+                    Vote for validators to secure the network and earn rewards
+                </p>
+                <button class="btn btn-secondary" onclick="showScreen('validators-screen')">
+                    View Validators
+                </button>
+            </div>
+            
+            <!-- Your Positions -->
+            <div class="section-header">
+                <h3 class="section-title">Your Positions</h3>
+            </div>
+            
+            <div class="glass-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-md);">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                        <div class="asset-icon" style="width: 40px; height: 40px; font-size: 16px;">CTC</div>
+                        <div>
+                            <div class="body-base" style="font-weight: 600;">CTC Staking</div>
+                            <div class="body-small" style="color: var(--text-secondary);">Locked for 30 days</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="body-base" style="font-weight: 600;">5,000 CTC</div>
+                        <div class="body-small" style="color: var(--success);">12.5% APY</div>
+                    </div>
+                </div>
+                <button class="btn btn-ghost btn-small">Manage Position</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <a href="#" class="nav-item active" onclick="switchTab('dashboard'); return false;">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                <path d="M9 22V12h6v10"/>
+            </svg>
+            <span class="nav-label">Home</span>
+        </a>
+        <a href="#" class="nav-item" onclick="switchTab('markets'); return false;">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+            <span class="nav-label">Markets</span>
+        </a>
+        <a href="#" class="nav-item" onclick="switchTab('defi'); return false;">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+            </svg>
+            <span class="nav-label">DeFi</span>
+        </a>
+        <a href="#" class="nav-item" onclick="switchTab('settings'); return false;">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1m20.5-4.5L17 12l4.5 4.5M3.5 7.5L8 12l-4.5 4.5"/>
+            </svg>
+            <span class="nav-label">Settings</span>
+        </a>
+    </nav>
+
+    <!-- Toast Container -->
+    <div id="toast" class="toast">
+        <div class="toast-content">
+            <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+            </svg>
+            <span class="toast-message" id="toast-message">Copied to clipboard</span>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentScreen = 'splash-screen';
+        let pin = '';
+        let authPin = '';
+        let selectedFee = 'normal';
+        let walletData = null;
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check if wallet exists
+            setTimeout(() => {
+                if (localStorage.getItem('ctc_wallet')) {
+                    showScreen('auth-screen');
+                } else {
+                    showScreen('onboarding-screen');
+                }
+            }, 3000);
+
+            // Add ripple effect
+            document.querySelectorAll('.ripple').forEach(elem => {
+                elem.addEventListener('click', createRipple);
+            });
+
+            // Update amount conversions
+            const amountInput = document.getElementById('amount');
+            if (amountInput) {
+                amountInput.addEventListener('input', updateAmountConversion);
+            }
+        });
+
+        // Screen management
+        function showScreen(screenId) {
+            const currentScreenEl = document.getElementById(currentScreen);
+            const newScreenEl = document.getElementById(screenId);
+            
+            if (currentScreenEl) {
+                currentScreenEl.classList.add('slide-out');
+                setTimeout(() => {
+                    currentScreenEl.classList.remove('active', 'slide-out');
+                }, 300);
+            }
+            
+            setTimeout(() => {
+                if (newScreenEl) {
+                    newScreenEl.classList.add('active');
+                    currentScreen = screenId;
+                    
+                    // Show/hide bottom nav
+                    const bottomNav = document.getElementById('bottom-nav');
+                    if (['dashboard-screen', 'markets-screen', 'defi-screen', 'settings-screen'].includes(screenId)) {
+                        bottomNav.classList.add('visible');
+                    } else {
+                        bottomNav.classList.remove('visible');
+                    }
+                }
+            }, currentScreenEl ? 300 : 0);
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            const screenMap = {
+                'dashboard': 'dashboard-screen',
+                'markets': 'markets-screen',
+                'defi': 'defi-screen',
+                'settings': 'settings-screen'
+            };
+            
+            showScreen(screenMap[tab]);
+            
+            // Update active nav
+            const tabIndex = Object.keys(screenMap).indexOf(tab);
+            if (tabIndex !== -1) {
+                navItems[tabIndex].classList.add('active');
+            }
+        }
+
+        // PIN management
+        function addPin(digit) {
+            if (pin.length < 6) {
+                pin += digit;
+                updatePinDisplay();
+                
+                if (pin.length === 6) {
+                    setTimeout(() => {
+                        generateSeedPhrase();
+                        showScreen('seed-phrase-screen');
+                    }, 300);
+                }
+            }
+        }
+
+        function deletePin() {
+            if (pin.length > 0) {
+                pin = pin.slice(0, -1);
+                updatePinDisplay();
+            }
+        }
+
+        function clearPin() {
+            pin = '';
+            updatePinDisplay();
+        }
+
+        function updatePinDisplay() {
+            for (let i = 1; i <= 6; i++) {
+                const dot = document.getElementById(`pin-${i}`);
+                if (dot) {
+                    if (i <= pin.length) {
+                        dot.classList.add('filled');
+                    } else {
+                        dot.classList.remove('filled');
+                    }
+                }
+            }
+        }
+
+        // Auth PIN
+        function addAuthPin(digit) {
+            if (authPin.length < 6) {
+                authPin += digit;
+                updateAuthPinDisplay();
+                
+                if (authPin.length === 6) {
+                    authenticatePin();
+                }
+            }
+        }
+
+        function deleteAuthPin() {
+            if (authPin.length > 0) {
+                authPin = authPin.slice(0, -1);
+                updateAuthPinDisplay();
+            }
+        }
+
+        function updateAuthPinDisplay() {
+            for (let i = 1; i <= 6; i++) {
+                const dot = document.getElementById(`auth-pin-${i}`);
+                if (dot) {
+                    if (i <= authPin.length) {
+                        dot.classList.add('filled');
+                    } else {
+                        dot.classList.remove('filled');
+                    }
+                }
+            }
+        }
+
+        function authenticatePin() {
+            const savedWallet = localStorage.getItem('ctc_wallet');
+            if (savedWallet) {
+                const wallet = JSON.parse(savedWallet);
+                if (wallet.pin === authPin) {
+                    authPin = '';
+                    updateAuthPinDisplay();
+                    showScreen('dashboard-screen');
+                } else {
+                    showToast('Incorrect PIN', 'error');
+                    authPin = '';
+                    updateAuthPinDisplay();
+                }
+            }
+        }
+
+        function authenticateBiometric() {
+            // Simulate biometric auth
+            showToast('Authenticating...', 'info');
+            setTimeout(() => {
+                showScreen('dashboard-screen');
+            }, 1000);
+        }
+
+        function forgotPin() {
+            if (confirm('This will reset your wallet. Are you sure?')) {
+                localStorage.removeItem('ctc_wallet');
+                showScreen('onboarding-screen');
+            }
+        }
+
+        // Seed phrase generation
+        function generateSeedPhrase() {
+            const words = [
+                'abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract',
+                'absurd', 'abuse', 'access', 'accident', 'account', 'accuse', 'achieve', 'acid',
+                'acoustic', 'acquire', 'across', 'act', 'action', 'actor', 'actress', 'actual',
+                'adapt', 'add', 'addict', 'address', 'adjust', 'admit', 'adult', 'advance'
+            ];
+            
+            const seedPhrase = [];
+            for (let i = 0; i < 12; i++) {
+                const randomIndex = Math.floor(Math.random() * words.length);
+                seedPhrase.push(words[randomIndex]);
+            }
+            
+            // Display seed phrase
+            const seedGrid = document.getElementById('seed-grid');
+            if (seedGrid) {
+                seedGrid.innerHTML = '';
+                seedPhrase.forEach((word, index) => {
+                    const seedWord = document.createElement('div');
+                    seedWord.className = 'seed-word';
+                    seedWord.innerHTML = `
+                        <div class="seed-number">${index + 1}</div>
+                        <div class="seed-text">${word}</div>
+                    `;
+                    seedGrid.appendChild(seedWord);
+                });
+            }
+            
+            // Save wallet
+            const wallet = {
+                pin: pin,
+                seedPhrase: seedPhrase.join(' '),
+                address: generateAddress(),
+                balance: '10000.00'
+            };
+            
+            localStorage.setItem('ctc_wallet', JSON.stringify(wallet));
+            walletData = wallet;
+        }
+
+        function generateAddress() {
+            const chars = '0123456789abcdef';
+            let address = 'ctc1q';
+            for (let i = 0; i < 38; i++) {
+                address += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return address;
+        }
+
+        // Transaction functions
+        function selectFee(element, fee) {
+            document.querySelectorAll('.fee-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            selectedFee = fee;
+        }
+
+        function setMaxAmount() {
+            const amountInput = document.getElementById('amount');
+            if (amountInput) {
+                amountInput.value = '10000.00';
+                updateAmountConversion();
+            }
+        }
+
+        function updateAmountConversion() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const usdValue = (amount * 2.45).toFixed(2);
+            const convertedElement = document.querySelector('.amount-converted');
+            if (convertedElement) {
+                convertedElement.textContent = `≈ ${usdValue} USD`;
+            }
+        }
+
+        function reviewTransaction() {
+            const recipient = document.getElementById('recipient').value;
+            const amount = document.getElementById('amount').value;
+            
+            if (!recipient) {
+                showToast('Please enter recipient address', 'error');
+                return;
+            }
+            
+            if (!amount || parseFloat(amount) <= 0) {
+                showToast('Please enter valid amount', 'error');
+                return;
+            }
+            
+            showScreen('confirm-screen');
+        }
+
+        function sendTransaction() {
+            showToast('Sending transaction...', 'info');
+            
+            // Simulate transaction
+            setTimeout(() => {
+                showScreen('success-screen');
+            }, 2000);
+        }
+
+        function viewTransaction() {
+            showToast('Opening block explorer...', 'info');
+        }
+
+        // Receive functions
+        function copyAddress() {
+            // In a real app, copy to clipboard
+            navigator.clipboard.writeText('ctc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhxwmxuh').then(() => {
+                showToast('Address copied to clipboard', 'success');
+            });
+        }
+
+        function shareAddress() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My CTC Address',
+                    text: 'ctc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhxwmxuh'
+                });
+            } else {
+                copyAddress();
+            }
+        }
+
+        function setAmount() {
+            showToast('Amount request feature coming soon', 'info');
+        }
+
+        function scanQR() {
+            showToast('QR scanner coming soon', 'info');
+        }
+
+        // Settings functions
+        function toggleBiometric() {
+            const toggle = document.getElementById('biometric-toggle');
+            if (toggle) {
+                toggle.classList.toggle('active');
+                const isActive = toggle.classList.contains('active');
+                showToast(isActive ? 'Biometric enabled' : 'Biometric disabled', 'success');
+            }
+        }
+
+        function showSeedPhrase() {
+            if (confirm('Are you sure you want to view your recovery phrase?')) {
+                showToast('Recovery phrase viewing coming soon', 'info');
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to sign out?')) {
+                showScreen('auth-screen');
+            }
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            if (toast && toastMessage) {
+                toastMessage.textContent = message;
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Ripple effect
+        function createRipple(e) {
+            const button = e.currentTarget;
+            const circle = document.createElement('span');
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${e.clientX - button.offsetLeft - radius}px`;
+            circle.style.top = `${e.clientY - button.offsetTop - radius}px`;
+            circle.classList.add('ripple');
+
+            const ripple = button.getElementsByClassName('ripple')[0];
+            if (ripple) {
+                ripple.remove();
+            }
+
+            button.appendChild(circle);
+        }
+
+        // PWA Installation
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('SW registered: ', registration);
+                }).catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
+            });
+        }
+
+        // Handle iOS standalone mode
+        if (window.navigator.standalone) {
+            document.body.classList.add('standalone');
+        }
+
+        // Prevent pull-to-refresh on iOS
+        let lastY = 0;
+        document.addEventListener('touchstart', (e) => {
+            lastY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            const y = e.touches[0].clientY;
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            
+            if (scrollTop === 0 && y > lastY) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Mock service worker for PWA capabilities
+        const swCode = `
+            self.addEventListener('install', event => {
+                self.skipWaiting();
+            });
+
+            self.addEventListener('activate', event => {
+                event.waitUntil(clients.claim());
+            });
+
+            self.addEventListener('fetch', event => {
+                event.respondWith(fetch(event.request));
+            });
+        `;
+
+        // Create service worker blob URL
+        const swBlob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(swBlob);
+
+        // Detect mobile device
+        function isMobile() {
+            return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        }
+
+        // Initialize mobile-specific features
+        if (isMobile()) {
+            document.body.classList.add('mobile');
+            
+            // Add viewport meta adjustments
+            const viewport = document.querySelector('meta[name="viewport"]');
+            if (viewport) {
+                viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+            }
+        }
+
+        // Simulate network status
+        window.addEventListener('online', () => {
+            showToast('Connected to network', 'success');
+        });
+
+        window.addEventListener('offline', () => {
+            showToast('No internet connection', 'error');
+        });
+
+        // Handle back button
+        window.addEventListener('popstate', (e) => {
+            if (currentScreen === 'dashboard-screen') {
+                if (confirm('Exit CTC Wallet?')) {
+                    window.close();
+                }
+            } else {
+                // Navigate back logic
+                const backMap = {
+                    'send-screen': 'dashboard-screen',
+                    'receive-screen': 'dashboard-screen',
+                    'confirm-screen': 'send-screen',
+                    'success-screen': 'dashboard-screen',
+                    'settings-screen': 'dashboard-screen',
+                    'defi-screen': 'dashboard-screen'
+                };
+                
+                if (backMap[currentScreen]) {
+                    showScreen(backMap[currentScreen]);
+                }
+            }
+        });
+
+        // Initialize touch gestures
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].clientX;
+            touchEndY = e.changedTouches[0].clientY;
+            handleSwipeGesture();
+        });
+
+        function handleSwipeGesture() {
+            const swipeThreshold = 50;
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+            
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
+                if (diffX > 0 && currentScreen !== 'dashboard-screen') {
+                    // Swipe right - go back
+                    const backButton = document.querySelector('.header-action');
+                    if (backButton && backButton.onclick) {
+                        backButton.onclick();
+                    }
+                }
+            }
+        }
+
+        // Initialize app
+        console.log('CTC Wallet initialized successfully');
+    </script>
+</body>
+</html>
